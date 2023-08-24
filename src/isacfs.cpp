@@ -441,7 +441,7 @@ esp_err_t isacfs_write_file(isacfs_file_meta* file_meta, u8* buffer, u32 buf_sz)
         CURR_WRITE_DATA_OFFSET += buf_sz;
     }
 
-    // UPDATE CURR_WRITE_META
+    // UPDATE CURR_WRITE_META  // {{{BUG!}}}
     CURR_WRITE_META_OFFSET += 0x8;
     if(CURR_WRITE_META_OFFSET >= SECTOR_SIZE){
         CURR_WRITE_META_SECTOR++;
@@ -472,7 +472,20 @@ void  isacfs_file_desc(isacfs_file_meta* file_meta, u32* discovered_size, u32* m
         __desc_8B_blk__to__isacfs_file_meta(sector + *meta_offset, file_meta);
     }
     else { // search the meta sector&offset using quick search on datetime stamps
-        
+        //{{{IMPLEMENT}}}
+    }
+}
+
+/**
+ * @brief updates the meta sector&offset to enable reading the next file. {{{IMPLEMENT}}}
+*/
+void isacfs_next_meta(u32* sector, u32* offset){
+    *offset += 0x8;
+    if(*offset >= SECTOR_SIZE){
+        (*sector)++;
+        if(*sector >= ???){
+            *sector = 0x0;
+        }
     }
 }
 
