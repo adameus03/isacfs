@@ -200,8 +200,8 @@ void /*const u8**/ __isacfs_file_meta__to__desc_8B_blk(isacfs_file_meta* file_me
 /**
  * @brief Decode/expand "desc_8B_blk" into a isac_file_meta structure
 */
-const isacfs_file_meta* __desc_8B_blk__to__isacfs_file_meta(const u8* desc_8B_blk){
-    static isacfs_file_meta *file_meta;
+void /*const isacfs_file_meta**/ __desc_8B_blk__to__isacfs_file_meta(const u8* desc_8B_blk, isacfs_file_meta* file_meta){
+    //static isacfs_file_meta *file_meta; //it was uninitialized!
     static u64 desc_u64;
 
     desc_u64 = (((u64)(desc_8B_blk[0])) << 56U) | (((u64)(desc_8B_blk[1])) << 48U) | (((u64)(desc_8B_blk[2])) << 40U) | (((u64)(desc_8B_blk[3])) << 32U);
@@ -224,7 +224,7 @@ const isacfs_file_meta* __desc_8B_blk__to__isacfs_file_meta(const u8* desc_8B_bl
     desc_u64 <<= 6U;
     file_meta->second = desc_u64 >> 58U;
 
-    return file_meta;
+    //return file_meta;
 }
 
 /**
@@ -459,17 +459,28 @@ esp_err_t isacfs_write_file(isacfs_file_meta* file_meta, u8* buffer, u32 buf_sz)
 
 /**
  * @brief Fills "file_meta" with the sector & offset info - {{{IMPLEMENT}}} using quick search on dates
- * @returns Size of the file (in bytes)
+ * @note obtains sector, offset, size in the isacfs_file_meta structure
+ * @param[in] file_meta known file info
+ * @param[out] discovered_size discovered file content size
+ * @param meta_sector in or out depending if it is known or not
+ * @param meta_offset in or out depending if it is known or not
 */
-u32 isacfs_file_desc(isacfs_file_meta file_meta){
-
+void  isacfs_file_desc(isacfs_file_meta* file_meta, u32* discovered_size, u32* meta_sector, u32* meta_offset){
+    if(meta_sector && meta_offset){
+        u8 sector[SECTOR_SIZE];
+        micro_sd_read_sectors(sector, *meta_sector, 0x1);
+        __desc_8B_blk__to__isacfs_file_meta(sector + *meta_offset, file_meta);
+    }
+    else { // search the meta sector&offset using quick search on datetime stamps
+        
+    }
 }
 
 /**
  * Read the file based on the sector, offset and size data obtained using the "isacfs_file_desc" function
 */
-void isacfs_read_file(isacfs_file_meta file_meta, void* out_buffer){
-    
+void isacfs_read_file(isacfs_file_meta file_meta, void* out_buffer, u32 offset, u32 length){
+     
 }
 
 //{{{void/isacfs_file_meta get_next_file R/W}}}
